@@ -4,4 +4,7 @@
         <item name="android:background">@drawable/button_background</item>
         <item name="android:backgroundTint">@color/grey_yellow</item>
     </style>
+    <style name="AppTheme.PopupMenuStyle" parent="Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@color/white</item>
+    </style>
 </resources>

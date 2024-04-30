@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/mi_search"
+        android:icon="@drawable/ic_search"
+        android:title="Search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="ifRoom|collapseActionView" />
+    <item
+        android:id="@+id/mi_edit"
+        android:title="Sửa"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/mi_changeSeeMode"
+        android:title="Chế độ xem lưới"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/mi_sort"
+        android:title="Sắp xếp theo ngày tạo"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/mi_setting"
+        android:title="Cài đặt"
+        app:showAsAction="never"/>
+</menu>
