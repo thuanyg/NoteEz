@@ -33,7 +33,7 @@ public class DateUtils {
         }
 
         DateTimeFormatter formatter = null;
-        formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+        formatter = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
         String formattedDateTime = currentDateTime.format(formatter);
         return formattedDateTime;
     }
