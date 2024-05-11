@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Note Ez</string>
+    <string name="nav_open">Open</string>
+    <string name="nav_close">Close</string>
+
+    <string name="policy_url">https://htthuan.id.vn/noteez/privacy.html</string>
+    <string name="app_information_url">https://htthuan.id.vn/noteez/information.html</string>
+    <string name="about_us_url">https://htthuan.id.vn/noteez/aboutus.html</string>
+
 </resources>

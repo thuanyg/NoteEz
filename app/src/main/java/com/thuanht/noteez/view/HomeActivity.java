@@ -181,6 +181,34 @@ public class HomeActivity extends AppCompatActivity {
             return true;
         });
 
+        mMenu.findItem(R.id.mi_setting).setOnMenuItemClickListener(item -> {
+            startActivity(new Intent(HomeActivity.this, SettingActivity.class));
+            return true;
+        });
+
+        mMenu.findItem(R.id.mi_sort).setOnMenuItemClickListener(item -> {
+            if(adapter.toggleSortResult()){
+                try {
+                    notes.clear();
+                    notes.addAll(AppDatabase.getInstance(this).noteDAO().sortRandom());
+                    adapter.notifyDataSetChanged();
+                    mMenu.findItem(R.id.mi_sort).setTitle("Sắp xếp theo ngày tạo");
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                try {
+                    notes.clear();
+                    notes.addAll(AppDatabase.getInstance(this).noteDAO().selectAll());
+                    adapter.notifyDataSetChanged();
+                    mMenu.findItem(R.id.mi_sort).setTitle("Sắp xếp ngẫu nhiên");
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return true;
+        });
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -214,18 +242,6 @@ public class HomeActivity extends AppCompatActivity {
             menuHelper.setForceShowIcon(true); // Optional, for showing icons on the submenu
             menuHelper.show();
         }
-//        MenuItem.OnActionExpandListener onActionExpandListener = new MenuItem.OnActionExpandListener() {
-//            @Override
-//            public boolean onMenuItemActionExpand(@NonNull MenuItem item) {
-//                return false;
-//            }
-//
-//            @Override
-//            public boolean onMenuItemActionCollapse(@NonNull MenuItem item) {
-//                return false;
-//            }
-//        };
-//        menu.findItem(R.id.mi_search).setOnActionExpandListener(onActionExpandListener);
         return super.onCreateOptionsMenu(menu);
     }
 

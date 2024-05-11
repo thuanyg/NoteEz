@@ -28,6 +28,8 @@ public interface NoteDAO {
 
     @Query("DELETE FROM note")
     void deleteAll();
-    @Query("SELECT * FROM note WHERE noteContent LIKE '%' || :query || '%' OR title LIKE '%' || :query || '%'")
+    @Query("SELECT * FROM note WHERE noteContent LIKE '%' || :query || '%' OR title LIKE '%' || :query || '%' ORDER BY date DESC")
     List<Note> searchNote(String query);
+    @Query("SELECT * FROM note ORDER BY RANDOM()")
+    List<Note> sortRandom();
 }

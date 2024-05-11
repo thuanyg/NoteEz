@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="HardcodedText">
+
+    <item
+        android:id="@+id/nav_settings"
+        android:title="Settings" />
+
+    <item
+        android:id="@+id/nav_aboutUs"
+        android:title="About us" />
+
+    <item
+        android:id="@+id/nav_Policy"
+        android:title="Policy" />
+
+    <item
+        android:id="@+id/nav_Version"
+        android:title="Version" />
+</menu>

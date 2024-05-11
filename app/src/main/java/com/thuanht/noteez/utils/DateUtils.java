@@ -61,7 +61,7 @@ public class DateUtils {
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static String convertToRelativeTime(String timestamp) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime dateTime = LocalDateTime.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime dateTime = LocalDateTime.parse(timestamp, DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy"));
 
         long seconds = ChronoUnit.SECONDS.between(dateTime, now);
         long minutes = ChronoUnit.MINUTES.between(dateTime, now);
@@ -69,7 +69,7 @@ public class DateUtils {
         long days = ChronoUnit.DAYS.between(dateTime, now);
 
         if (days > 0) {
-            return days + " ngày trước";
+            return dateTime.format(DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy"));
         } else if (hours >= 1) {
             return hours + " giờ trước";
         } else if (minutes >= 1) {

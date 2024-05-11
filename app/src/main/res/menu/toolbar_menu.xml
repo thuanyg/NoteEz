@@ -8,16 +8,12 @@
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="ifRoom|collapseActionView" />
     <item
-        android:id="@+id/mi_edit"
-        android:title="Sửa"
-        app:showAsAction="never"/>
-    <item
         android:id="@+id/mi_changeSeeMode"
         android:title="Chế độ xem lưới"
         app:showAsAction="never"/>
     <item
         android:id="@+id/mi_sort"
-        android:title="Sắp xếp theo ngày tạo"
+        android:title="Sắp xếp ghi chú ngẫu nhiên"
         app:showAsAction="never"/>
     <item
         android:id="@+id/mi_setting"
