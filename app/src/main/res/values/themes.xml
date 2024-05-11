@@ -2,7 +2,17 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.NoteEz" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
+
+    <style name="DialogStyle" parent="Theme.Material3.DayNight.Dialog">
+        <!-- Customize the background color of the dialog -->
+        <item name="android:background">@color/white</item>
+    </style>
+    <style name="DialogTextStyle" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/black</item>
+    </style>
+
     <style name="Theme.NoteEz" parent="Base.Theme.NoteEz" />
 </resources>

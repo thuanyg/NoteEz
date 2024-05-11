@@ -1,61 +1,53 @@
 package com.thuanht.noteez.view;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Editable;
 import android.text.Html;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
-import android.text.TextWatcher;
-import android.text.style.ImageSpan;
 import android.view.Menu;
-import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
-import com.bumptech.glide.Glide;
 import com.thuanht.noteez.R;
-import com.thuanht.noteez.database.room.AppDatabase;
 import com.thuanht.noteez.databinding.ActivityNoteBinding;
 import com.thuanht.noteez.model.Note;
 import com.thuanht.noteez.utils.DateUtils;
+import com.thuanht.noteez.utils.DialogUtils;
+import com.thuanht.noteez.viewmodel.NoteViewModel;
 
-import java.io.IOException;
-import java.util.concurrent.ExecutionException;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 import jp.wasabeef.richeditor.RichEditor;
 
 public class NoteActivity extends AppCompatActivity {
     public static final String NOTE_OBJECT_DATA_KEY = "Note_Data_Key";
-
+    public static final String NOTE_ACTION_DATA_KEY = "Note_Action_Key";
+    public int ACTION = 0;
     private ActivityNoteBinding binding;
-    private Menu mMenu;
     private TextView mPreview;
     private RichEditor mEditor;
+    private int noteReceivedID = 0;
+    private NoteViewModel viewModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityNoteBinding.inflate(getLayoutInflater());
-        EdgeToEdge.enable(this);
         setContentView(binding.getRoot());
+        viewModel = new ViewModelProvider(this).get(NoteViewModel.class);
 
         initUI();
         initEditorTool();
@@ -63,12 +55,13 @@ public class NoteActivity extends AppCompatActivity {
         noteEditEventHanlder();
     }
 
+    @SuppressLint("DefaultLocale")
     private void initDataFromHome(Note note) {
         binding.txtTitle.setText(note.getTitle());
         binding.tvDate.setText(note.getDate());
         Spanned spannedText = Html.fromHtml(note.getNoteContent());
         mPreview.setText(note.getNoteContent());
-        binding.tvCountNote.setText(spannedText.length() + "");
+        binding.tvCountNote.setText(String.format("%d", spannedText.length()));
         mEditor.setHtml(note.getNoteContent());
     }
 
@@ -82,11 +75,12 @@ public class NoteActivity extends AppCompatActivity {
             binding.tvDate.setText(DateUtils.getInstance().getCurrentDateTime());
         }
         setSupportActionBar(binding.toolbarNote);
-        getSupportActionBar().setTitle("");
+        Objects.requireNonNull(getSupportActionBar()).setTitle("");
         getSupportActionBar().setDisplayShowTitleEnabled(true); // Ensure the title is displayed
         getSupportActionBar().show();
     }
 
+    @SuppressLint({"UseCompatTextViewDrawableApis", "DefaultLocale"})
     private void initEditorTool() {
         mPreview = binding.tvPreview;
         mEditor = binding.editor;
@@ -96,45 +90,92 @@ public class NoteActivity extends AppCompatActivity {
         mEditor.setEditorFontColor(Color.BLACK);
         mEditor.setEditorBackgroundColor(Color.WHITE);
         mEditor.setPadding(10, 10, 10, 10);
-        //mEditor.setBackground("https://raw.githubusercontent.com/wasabeef/art/master/chip.jpg");
         mEditor.setPlaceholder("Write your note here ...");
+        mEditor.setOnTextChangeListener(text -> {
+            Note note = new Note();
+            note.setNoteContent(text);
+            viewModel.setNote(note);
 
-        mEditor.setOnTextChangeListener(new RichEditor.OnTextChangeListener() {
-            @Override
-            public void onTextChange(String text) {
-                if(text.isEmpty()){
-                    ColorStateList colorStateList = ColorStateList.valueOf(getResources().getColor(R.color.grey_icon));
-                    binding.btnUndo.setCompoundDrawableTintList(colorStateList);
-                } else {
-                    ColorStateList colorStateList = ColorStateList.valueOf(getResources().getColor(R.color.black));
-                    binding.btnUndo.setCompoundDrawableTintList(colorStateList);
-                }
-
-                Spanned spannedText = Html.fromHtml(text); // Convert HTML to plain text
-                mPreview.setText(text);
-                binding.tvCountNote.setText(spannedText.length() + "");
+            if (text.isEmpty()) {
+                ColorStateList colorStateList = ColorStateList.valueOf(getResources().getColor(R.color.grey_icon));
+                binding.btnUndo.setCompoundDrawableTintList(colorStateList);
+            } else {
+                ColorStateList colorStateList = ColorStateList.valueOf(getResources().getColor(R.color.black));
+                binding.btnUndo.setCompoundDrawableTintList(colorStateList);
             }
+
+        });
+
+        viewModel.getNote().observe(this, note -> {
+            Spanned spannedText = Html.fromHtml(note.getNoteContent()); // Convert HTML to plain text
+            mPreview.setText(note.getNoteContent());
+            binding.tvCountNote.setText(String.format("%d", spannedText.length()));
         });
     }
 
     private void noteEditEventHanlder() {
+        AtomicReference<Boolean> isBold = new AtomicReference<>(false);
+        AtomicReference<Boolean> isUnderline = new AtomicReference<>(false);
+        AtomicReference<Boolean> isItalic = new AtomicReference<>(false);
+
+        int colorActive = ContextCompat.getColor(this, R.color.grey_toolNote_bg);
+        int colorWhite = ContextCompat.getColor(this, R.color.white);
+        ColorStateList csl_ToolActiveColor = ColorStateList.valueOf(colorActive);
+        ColorStateList csl_ToolUnActiveColor = ColorStateList.valueOf(colorWhite);
+
         binding.btnUndo.setOnClickListener(v -> mEditor.undo());
         binding.btnRedo.setOnClickListener(v -> mEditor.redo());
+
+        binding.btnToolBold.setOnClickListener(v -> {
+            mEditor.setBold();
+            if (isBold.get()) {
+                binding.btnToolBold.setBackgroundTintList(csl_ToolUnActiveColor);
+                isBold.set(false);
+            } else {
+                binding.btnToolBold.setBackgroundTintList(csl_ToolActiveColor);
+                isBold.set(true);
+            }
+        });
+
+        binding.btnToolUnderline.setOnClickListener(v -> {
+            mEditor.setUnderline();
+            if (isUnderline.get()) {
+                binding.btnToolUnderline.setBackgroundTintList(csl_ToolUnActiveColor);
+                isUnderline.set(false);
+            } else {
+                binding.btnToolUnderline.setBackgroundTintList(csl_ToolActiveColor);
+                isUnderline.set(true);
+            }
+        });
+        binding.btnToolItalic.setOnClickListener(v -> {
+            mEditor.setItalic();
+            if (isItalic.get()) {
+                binding.btnToolItalic.setBackgroundTintList(csl_ToolUnActiveColor);
+                isItalic.set(false);
+            } else {
+                binding.btnToolItalic.setBackgroundTintList(csl_ToolActiveColor);
+                isItalic.set(true);
+            }
+        });
+        binding.btnToolList.setOnClickListener(v -> mEditor.setBullets());
+        binding.btnToolAdjLeft.setOnClickListener(v -> mEditor.setAlignLeft());
+        binding.btnToolAdjCenter.setOnClickListener(v -> mEditor.setAlignCenter());
+        binding.btnToolAdjRight.setOnClickListener(v -> mEditor.setAlignRight());
     }
+
     boolean doNothing = false;
+
     private void eventHandler() {
         mEditor.focusEditor();
-        mEditor.requestFocus();
-        binding.toolbarNote.setNavigationOnClickListener(v -> {
-            backAndSave();
-        });
+        binding.toolbarNote.setNavigationOnClickListener(v -> DialogUtils.getInstance().showDialog(this, "Bạn chắc chắn muốn thoát? Ghi chú sẽ không được lưu", this::finish));
         // Get intent data
         Intent receivedIntent = getIntent();
-        if(receivedIntent != null){
+        if (receivedIntent != null) {
             try {
                 Note note = (Note) receivedIntent.getSerializableExtra(NOTE_OBJECT_DATA_KEY);
+                noteReceivedID = note.getId();
                 initDataFromHome(note);
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -147,35 +188,51 @@ public class NoteActivity extends AppCompatActivity {
             doNothing = true;
             finish();
         }
-        if(!doNothing){
+        if (!doNothing) {
             Note note = new Note();
             note.setTitle(title);
             note.setNoteContent(content);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 note.setDate(DateUtils.getInstance().getCurrentDateTime());
             }
-            NavigateToHome(note);
+            Intent receivedIntent = getIntent();
+            if (receivedIntent != null) {
+                try {
+                    ACTION = receivedIntent.getIntExtra(NOTE_ACTION_DATA_KEY, 0);
+                    if (ACTION == HomeActivity.ACTION_UPDATE) {
+                        note.setId(noteReceivedID);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            NavigateToHome(ACTION, note);
             finish();
         }
     }
 
-    public void NavigateToHome(Note note){
+    public void NavigateToHome(int action, Note note) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             note.setDate(DateUtils.getInstance().getCurrentDateTime());
         }
         Intent intent = new Intent(this, HomeActivity.class);
         intent.putExtra(NOTE_OBJECT_DATA_KEY, note);
+        intent.putExtra(NOTE_ACTION_DATA_KEY, action);
         setResult(RESULT_OK, intent);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar_menu_edit, menu);
-        mMenu = menu;
-        mMenu.findItem(R.id.mi_save).setOnMenuItemClickListener(item -> {
+        menu.findItem(R.id.mi_save).setOnMenuItemClickListener(item -> {
             backAndSave();
             return false;
         });
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public void onBackPressed() {
+        DialogUtils.getInstance().showDialog(this, "Bạn chắc chắn muốn thoát? Ghi chú sẽ không được lưu", () -> finish());
     }
 }

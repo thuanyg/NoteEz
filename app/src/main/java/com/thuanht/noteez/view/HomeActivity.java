@@ -9,7 +9,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
-
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -23,18 +22,22 @@ import androidx.appcompat.widget.SearchView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import com.thuanht.noteez.R;
 import com.thuanht.noteez.adapter.NoteAdapter;
 import com.thuanht.noteez.database.room.AppDatabase;
 import com.thuanht.noteez.databinding.ActivityHomeBinding;
 import com.thuanht.noteez.model.Note;
+import com.thuanht.noteez.viewmodel.NoteViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
+    public static final int ACTION_ADD = 0;
+    public static final int ACTION_UPDATE = 1;
     private ActivityHomeBinding binding;
     private Menu mMenu;
     private SearchView searchView;
@@ -42,12 +45,16 @@ public class HomeActivity extends AppCompatActivity {
     private NoteAdapter adapter;
     private ActivityResultLauncher<Intent> activityResultLauncher;
 
+    private NoteViewModel viewModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         binding = ActivityHomeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        viewModel = new ViewModelProvider(this).get(NoteViewModel.class);
+
         initUI();
         initData();
         eventHandler();
@@ -67,7 +74,7 @@ public class HomeActivity extends AppCompatActivity {
 
         // Custom
         notes = new ArrayList<>();
-        adapter = new NoteAdapter(this, notes, note -> goToWriteNoteActivity(note));
+        adapter = new NoteAdapter(this, notes, note -> goToWriteNoteActivity(ACTION_UPDATE, note));
         binding.rcvNotes.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         binding.rcvNotes.setAdapter(adapter);
         // S/H
@@ -81,12 +88,14 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void initData() {
-        List<Note> list = AppDatabase.getInstance(this).noteDAO().selectAll();
-        if (list != null) {
-            notes.clear();
-            notes.addAll(list);
-            adapter.notifyDataSetChanged();
-        }
+        viewModel.getListNote().observe(this, _notes -> {
+            if (_notes != null) {
+                notes.clear();
+                notes.addAll(_notes);
+                adapter.notifyDataSetChanged();
+            }
+        });
+        viewModel.setNotes(this);
     }
 
     private void eventHandler() {
@@ -99,34 +108,59 @@ public class HomeActivity extends AppCompatActivity {
                             // Get value
                             if (intent != null) {
                                 Note note = (Note) intent.getSerializableExtra(NoteActivity.NOTE_OBJECT_DATA_KEY);
+                                int action = intent.getIntExtra(NoteActivity.NOTE_ACTION_DATA_KEY, 0);
                                 if (note.getTitle() == "" && note.getNoteContent() == "") {
                                     return;
                                 }
-                                notes.add(0, note);
-                                adapter.notifyItemInserted(0);
+                                switch (action) {
+                                    case ACTION_ADD:
+                                        notes.add(0, note);
+                                        adapter.notifyItemInserted(0);
+                                        // Insert the note
+                                        InsertNote(note);
+                                        break;
+                                    case ACTION_UPDATE:
+                                        for (Note n: notes) {
+                                            if(n.getId() == note.getId()){
+                                                notes.remove(n);
+                                                notes.add(0, note);
+                                                break;
+                                            }
+                                        }
+                                        adapter.notifyDataSetChanged();
+                                        UpdateNote(note);
+                                        break;
+                                }
                                 binding.viewGroupEmptyNote.setVisibility(View.GONE);
                                 binding.btnAddNote.setVisibility(View.VISIBLE);
                                 binding.rcvNotes.smoothScrollToPosition(0);
-                                // Insert the note
-                                InsertNote(note);
+
                             }
                         }
                     }
                 });
 
-        binding.btnGetStared.setOnClickListener(v -> goToWriteNoteActivity(null));
-        binding.btnAddNote.setOnClickListener(v -> goToWriteNoteActivity(null));
+
+
+        binding.btnGetStared.setOnClickListener(v -> goToWriteNoteActivity(ACTION_ADD, null));
+        binding.btnAddNote.setOnClickListener(v -> goToWriteNoteActivity(ACTION_ADD, null));
+    }
+
+    private void UpdateNote(Note note) {
+        AppDatabase.getInstance(this).noteDAO().update(note);
     }
 
 
     private void InsertNote(Note note) {
         AppDatabase.getInstance(this).noteDAO().insert(note);
     }
-    private void goToWriteNoteActivity(Note note) {
+
+    private void goToWriteNoteActivity(int action, Note note) {
         Intent intent = new Intent(this, NoteActivity.class);
         if (note != null) {
             intent.putExtra(NoteActivity.NOTE_OBJECT_DATA_KEY, note);
         }
+        intent.putExtra(NoteActivity.NOTE_ACTION_DATA_KEY, action);
         activityResultLauncher.launch(intent);
     }
 
@@ -134,7 +168,34 @@ public class HomeActivity extends AppCompatActivity {
     private void eventMenuHandler() {
         searchView = (SearchView) mMenu.getItem(0).getActionView();
         searchView.setQueryHint("Search your notes");
-        searchView.setPadding(3,3,3,3);
+        searchView.setPadding(3, 3, 3, 3);
+
+        mMenu.findItem(R.id.mi_changeSeeMode).setOnMenuItemClickListener(item -> {
+            if (adapter.toggleLayout()) {
+                binding.rcvNotes.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+                mMenu.findItem(R.id.mi_changeSeeMode).setTitle("Chế độ danh sách");
+            } else {
+                binding.rcvNotes.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+                mMenu.findItem(R.id.mi_changeSeeMode).setTitle("Chế độ xem lưới");
+            }
+            return true;
+        });
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                List<Note> listResult = AppDatabase.getInstance(HomeActivity.this).noteDAO().searchNote(newText);
+                notes.clear();
+                notes.addAll(listResult);
+                adapter.notifyDataSetChanged();
+                return false;
+            }
+        });
     }
 
     @SuppressLint("RestrictedApi")

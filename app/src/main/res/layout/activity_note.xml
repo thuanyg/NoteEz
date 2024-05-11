@@ -10,35 +10,38 @@
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbarNote"
-        android:nestedScrollingEnabled="false"
-        android:keyboardNavigationCluster="false"
         android:layout_width="match_parent"
         android:layout_height="?actionBarSize"
+        android:keyboardNavigationCluster="false"
+        android:nestedScrollingEnabled="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_back_navigation">
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:orientation="horizontal">
+
             <TextView
                 android:id="@+id/btnUndo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:padding="12dp"
+                android:drawableStart="@drawable/ic_undo"
                 android:drawableTint="@color/grey_icon"
-                android:drawableStart="@drawable/ic_undo" />
+                android:padding="12dp" />
+
             <TextView
                 android:id="@+id/btnRedo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:padding="12dp"
+                android:drawableStart="@drawable/ic_redo"
                 android:drawableTint="@color/grey_icon"
-                android:drawableStart="@drawable/ic_redo" />
+                android:padding="12dp" />
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 
@@ -116,14 +119,14 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@id/tool_edit"
+        app:layout_constraintBottom_toTopOf="@+id/cardView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/view">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <EditText
@@ -133,8 +136,8 @@
                 android:layout_marginHorizontal="15dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/edit_bg"
-                android:fontFamily="@font/roboto_bold"
                 android:focusable="true"
+                android:fontFamily="@font/roboto_bold"
                 android:hint="Tiêu đề"
                 android:paddingVertical="5dp"
                 android:paddingStart="10dp"
@@ -142,59 +145,132 @@
 
             <jp.wasabeef.richeditor.RichEditor
                 android:id="@+id/editor"
-                android:focusedByDefault="true"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginHorizontal="15dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/edit_bg"
-                android:fontFamily="@font/roboto"
-                android:paddingVertical="5dp"
-                android:paddingStart="10dp"
-                android:nestedScrollingEnabled="true"
-                android:fitsSystemWindows="true"
-                android:singleLine="false"
                 android:focusable="true"
+                android:fontFamily="@font/roboto"
                 android:letterSpacing="0.01"
                 android:lineSpacingExtra="8dp"
-                android:textSize="16sp"/>
+                android:paddingVertical="5dp"
+                android:paddingStart="10dp"
+                android:singleLine="false"
+                android:textSize="16sp" />
+
             <TextView
                 android:id="@+id/tvPreview"
-                android:visibility="gone"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <HorizontalScrollView
-        android:id="@+id/tool_edit"
-        android:layout_width="match_parent"
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent">
-        <LinearLayout
-            android:id="@+id/layout_actionNote"
+        android:layout_gravity="center"
+        app:cardCornerRadius="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <HorizontalScrollView
+            android:id="@+id/tool_edit"
             android:layout_width="match_parent"
-            android:layout_height="65dp"
-            android:background="#41E3DFDF"
-            android:orientation="horizontal"
-            android:fitsSystemWindows="true"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-            <TextView
-                android:id="@+id/btnAddIMG"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:padding="12dp"
-                android:drawableStart="@drawable/ic_search" />
-            <TextView
-                android:id="@+id/btnAddIMG2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:padding="12dp"
-                android:drawableStart="@drawable/ic_search" />
-        </LinearLayout>
-    </HorizontalScrollView>
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="10dp">
+
+            <LinearLayout
+                android:id="@+id/layout_actionNote"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:orientation="horizontal"
+                android:layout_marginHorizontal="10dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
+                <ImageButton
+                    android:id="@+id/btnToolBold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginHorizontal="3dp"
+                    android:paddingHorizontal="12dp"
+                    android:src="@drawable/cta_bold"
+                    android:backgroundTint="@color/white"
+                    android:paddingVertical="12dp" />
+
+                <ImageButton
+                    android:id="@+id/btnToolUnderline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginHorizontal="3dp"
+                    android:src="@drawable/group_5"
+                    android:background="@color/white"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="12dp" />
+
+                <ImageButton
+                    android:id="@+id/btnToolItalic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginHorizontal="3dp"
+                    android:src="@drawable/cta_italic"
+                    android:background="@color/white"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="12dp" />
+
+                <ImageButton
+                    android:id="@+id/btnToolList"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginHorizontal="3dp"
+                    android:src="@drawable/cta_list"
+                    android:background="@color/white"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="12dp" />
+
+                <ImageButton
+                    android:id="@+id/btnToolAdjLeft"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginHorizontal="3dp"
+                    android:src="@drawable/cta_adj_left"
+                    android:background="@color/white"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="12dp" />
+
+                <ImageButton
+                    android:id="@+id/btnToolAdjCenter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginHorizontal="3dp"
+                    android:src="@drawable/cta_adj_center"
+                    android:background="@color/white"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="12dp" />
+
+                <ImageButton
+                    android:id="@+id/btnToolAdjRight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginHorizontal="3dp"
+                    android:src="@drawable/cta_adj_right"
+                    android:background="@color/white"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="12dp" />
+            </LinearLayout>
+        </HorizontalScrollView>
+    </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

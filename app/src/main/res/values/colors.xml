@@ -6,4 +6,7 @@
     <color name="grey_yellow">#FBC103</color>
     <color name="grey_icon">#AFAFAF</color>
     <color name="grey_text">#7C7878</color>
+    <color name="grey_toolNote_bg">#DADADA</color>
+    <color name="background">#F6F6F6</color>
+
 </resources>
